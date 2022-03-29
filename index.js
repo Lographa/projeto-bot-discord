@@ -22,6 +22,14 @@ client.on("message", function (message) {
 		const page = await browser.newPage();
 		await page.goto(command);
 
+		//procura nome do boss
+		const BossName = await page.$$eval('#filter-fight-boss-text ', function (parses) {
+			return parses.map(function (parse) {
+				return parse.innerText;
+			});
+		});
+		const novoBoss = BossName.toString().substring(BossName.lastIndexOf("\n+"));
+
 		const parseNome = await page.$$eval('#main-table-0 tbody tr td:nth-child(2)  a', function (parses) {
 			// Mapeia todos os nome 
 			return parses.map(function (parse) {
@@ -36,28 +44,29 @@ client.on("message", function (message) {
 			});
 		});
 
-		// const resposta = await Promise.all(parseNumber.map(async function (k, i) {
-		// 	const dataNome = parseNome;
-		// 	return  `**${k}**` + ": " +  `${dataNome[i]} ` + ":grinning:" + '\n' ;
-
-		// }));
+		const metodo = (parse) => {
+			const numero = parseInt(parse);
+		if (numero <= 50) {
+			return ":confounded:"
+		} else {
+			return ":grinning:"
+		}
+		};
 
 		const resposta = await Promise.all(parseNumber.map(async function (k, i) {
 			const dataNome = parseNome;
-			if (k <= 50 ) {
-				return  "```Diff" + ` + **${k}**` + "```" + ": " + `${dataNome[i]} ` + ":grinning:" + '\n' ;
-			} else {
-			return `**${k}**` + ": " + `${dataNome[i]} ` + ":grinning:" + '\n' ;	
-			}
+			if (parseNumber.length == 9) {
+				parseNumber.pop();
+
+			}; 
+				return `**${k}**` + ": " + `${dataNome[i]} ` + `${metodo(k)}` + '\n' ;	
 			
-
+			// return `**${k}**` + ": " + `${dataNome[i]} ` + `${metodo(k)} ` + '\n' ;	
 		}));
-
-		const temparray = [];
 
 		const embed = new Discord.MessageEmbed()
 		// Set the title of the field
-		.setTitle('A slick little embed')
+		.setTitle(novoBoss.substring(BossName.lastIndexOf("+")))
 		// Set the color of the embed
 		.setColor(0xff0000)
 		// Set the main content of the embed
@@ -69,7 +78,6 @@ client.on("message", function (message) {
 		message.channel.send({ embeds: [embed] })
 
 		//retorna uma resposta da chamada GET contendo a string do parse com nome do player
-		// message.reply(stringando.concat(resposta.toString(), '}'));
 		await browser.close();
 	});
 
